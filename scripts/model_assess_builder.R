@@ -1,7 +1,7 @@
 ######################
 # biowulf2 note
 # run with:
-# sinteractive --gres=gpu:k80:1,lscratch:10 --mem=128g -c8
+# sinteractive --gres=gpu:k80:1,lscratchc:10 --mem=128g -c8
 # module load cuDNN/7.0/CUDA-9.0 CUDA R/3.5.0 python/3.5
 # to load keras/tensorflow 
 # https://hpc.nih.gov/apps/caret.html
@@ -20,19 +20,24 @@ library(PRROC)
 
 # Load processed data and models
 
-load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/model_data_2018_08_01.Rdata')
+#load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/model_data_2018_08_01.Rdata')
+load('clean_data/model_data_2018_08_01.Rdata')
 
-# load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_6mtry.Rdata')
+# loadclean_data/ta/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_6mtry.Rdata')
 # load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_6mtry_v8.Rdata')
 # load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_9mtry_v8.Rdata')
-load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_12mtry_v11.Rdata')
+#load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/VPaC_12mtry_v11.Rdata')
+load('clean_data/VPaC_12mtry_v11.Rdata')
 #VPaC <- VPaC
 # all raw
-load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/data/master/raw_data_2018_08_08.Rdata')
+#load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/data/master/raw_data_2018_08_08.Rdata')
+load('data/master/raw_data_2018_08_08.Rdata')
 # ogvfb exomes
-load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/ogvfb_exome_cohort_2018_08_07.Rdata')
+#load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/ogvfb_exome_cohort_2018_08_07.Rdata')
+load('clean_data/ogvfb_exome_cohort_2018_08_07.Rdata')
 # colombia exomes
-load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/colombia.Rdata')
+#load('/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/colombia.Rdata')
+load('clean_data/colombia.Rdata')
 
 
 eyeIntegration <- c('eyeintegration_rnaseq_adipose_subcutaneous','eyeintegration_rnaseq_tpm_adipose_visceral_omentum','eyeintegration_rnaseq_tpm_adrenalgland','eyeintegration_rnaseq_tpm_artery_aorta','eyeintegration_rnaseq_tpm_artery_coronary','eyeintegration_rnaseq_tpm_artery_tibial','eyeintegration_rnaseq_tpm_brain_amygdala','eyeintegration_rnaseq_tpm_brain_anteriorcingulatecortex_ba24','eyeintegration_rnaseq_tpm_brain_caudate_basalganglia','eyeintegration_rnaseq_tpm_brain_cerebellarhemisphere','eyeintegration_rnaseq_tpm_brain_cerebellum','eyeintegration_rnaseq_tpm_brain_cortex','eyeintegration_rnaseq_tpm_brain_frontalcortex_ba9','eyeintegration_rnaseq_tpm_brain_hippocampus','eyeintegration_rnaseq_tpm_brain_hypothalamus','eyeintegration_rnaseq_tpm_brain_nucleusaccumbens_basalganglia','eyeintegration_rnaseq_tpm_brain_putamen_basalganglia','eyeintegration_rnaseq_tpm_brain_spinalcord_cervicalc_1','eyeintegration_rnaseq_tpm_brain_substantianigra','eyeintegration_rnaseq_tpm_breast_mammarytissue','eyeintegration_rnaseq_tpm_cells_ebv_transformedlymphocytes','eyeintegration_rnaseq_tpm_cells_transformedfibroblasts','eyeintegration_rnaseq_tpm_colon_sigmoid','eyeintegration_rnaseq_tpm_colon_transverse','eyeintegration_rnaseq_tpm_esc_stemcellline','eyeintegration_rnaseq_tpm_esophagus_gastroesophagealjunction','eyeintegration_rnaseq_tpm_esophagus_mucosa','eyeintegration_rnaseq_tpm_esophagus_muscularis','eyeintegration_rnaseq_tpm_heart_atrialappendage','eyeintegration_rnaseq_tpm_heart_leftventricle','eyeintegration_rnaseq_tpm_kidney_cortex','eyeintegration_rnaseq_tpm_liver','eyeintegration_rnaseq_tpm_lung','eyeintegration_rnaseq_tpm_minorsalivarygland','eyeintegration_rnaseq_tpm_muscle_skeletal','eyeintegration_rnaseq_tpm_nerve_tibial','eyeintegration_rnaseq_tpm_pancreas','eyeintegration_rnaseq_tpm_pituitary','eyeintegration_rnaseq_tpm_skin_notsunexposed_suprapubic','eyeintegration_rnaseq_tpm_skin_sunexposed_lowerleg','eyeintegration_rnaseq_tpm_smallintestine_terminalileum','eyeintegration_rnaseq_tpm_spleen','eyeintegration_rnaseq_tpm_stomach','eyeintegration_rnaseq_tpm_thyroid','eyeintegration_rnaseq_tpm_wholeblood')
@@ -85,20 +90,24 @@ pr_maker <- function(predictor, data, cutoff=0.5) {
   }
 }
 
+
+
 ############ 
 ###  DDL ###
 ############
-panel <- readxl::read_excel('~/git/eye_var_Pathogenicity/data/NISC100_Variant_Interpretation_June01_2018.xlsx')
+#panel <- readxl::read_excel('~/git/eye_var_Pathogenicity/data/NISC100_Variant_Interpretation_June01_2018.xlsx')
+panel <- readxl::read_excel('data/NISC100_Variant_Interpretation_June01_2018.xlsx')
 ddl_path_cdot <- panel %>% filter(grepl('Path', `Interpretation Summary`, ignore.case = T)) %>% select(`#Chr`, End, Ref, Alt, avsnp147) %>% mutate(pos_id=paste0(`#Chr`, ':', End, '_', Ref, '_', Alt))
 ##############
 ### UK10K ####
 ##############
-metadata <- readxl::read_excel(path='~/git/EGA_EGAD00001002656_NGS_reanalyze/data/1-s2.0-S0002929716305274-mmc3.xlsx') %>% mutate(Sample=Patient)
+metadata <- readxl::read_excel(path='EGA_EGAD00001002656_NGS_reanalyze/data/1-s2.0-S0002929716305274-mmc3.xlsx') %>% mutate(Sample=Patient)
 sample_gene_comp_het <- metadata %>% filter(Status=='Solved'  & Variant_HGVSc!='NA' & GT=='0/1') %>% group_by(Sample, Gene) %>% summarise(Count=n()) %>% filter(Count>1) 
 metadata <- left_join(metadata, sample_gene_comp_het) %>% 
   mutate(Comp_Het_Path = case_when(Count >= 2 ~ 'CH', 
                                    TRUE ~ 'No')) %>% 
   select(-Count)
+
 
 allX <- raw_data %>% 
   mutate(DataSet_o=DataSet) %>%
@@ -123,26 +132,28 @@ allX <- raw_data %>%
                                                         pos_id %in% model_data$ML_set__other_TT$test_set$pos_id) ~ 'gnomAD Benign',
                              DataSet_o == 'UK10K' ~ 'UK10K',
                              TRUE ~ 'Other')) %>%
-  mutate(Status = case_when((DataSet == 'DDL NISC RD Cohort' & pos_id %in% ddl_path_cdot$pos_id) | 
+  mutate(Status = case_when((DataSet == 'DDL NISC RD Cohort' & pos_id %in% ddl_path_cdot$pos_id) |
                               (DataSet == 'DDL NISC RD Cohort' & end %in% ddl_path_cdot$End)  ~ 'Pathogenic',
                             DataSet == 'UK10K' & (Variant_genomic %in% (metadata %>% filter(Status == 'Solved') %>% pull(Variant_genomic))) ~ 'Pathogenic',
                             DataSet == 'UK10K' & (Variant_genomic %in% (metadata %>% filter(Status == 'Partially solved') %>% pull(Variant_genomic))) ~ 'Maybe Pathogenic',
                             grepl('pathogenic', DataSet_o, ignore.case = T) | grepl('pathogenic', status, ignore.case = T) ~ 'Pathogenic',
-                            TRUE ~ 'NotPathogenic')) %>% 
+                            TRUE ~ 'NotPathogenic')) %>%
   mutate(Status = case_when(Status = grepl('Grimm', DataSet) ~ status,
-                            TRUE ~ Status)) %>% 
-  mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.))) %>% 
-  #select(-status) %>% 
-  filter(DataSet != 'Other') %>% 
+                            TRUE ~ Status)) %>%
+  #mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.))) %>% 
+  #select(-status) %>%
+  filter(DataSet != 'Other') %>%
   filter(Status != 'Maybe Pathogenic')
-
+### VS: this fails , but i think its because the whole allX is the wrong input
+###     I add in allX_numeric to address this. this is the way its done in the build_vpac.R script
 #rm(raw_data)
 allX$fitcons_float <- allX$fitcons
-allX[is.na(allX)] <- -1
-
+#allX[is.na(allX)] <- -1
+allX_numeric <- allX %>% select(all_of(numeric_predictors)) %>% mutate_all(as.numeric)
+allX_numeric[is.na(allX_numeric)] <- 0
 # calculate VPaC scording for allX
 #allX$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, allX, type='prob')[,1])
-allX$VPaC<- sqrt(predict(VPaC_12mtry_v11, allX, type='prob')[,1])
+allX$VPaC<- sqrt(predict(VPaC_12mtry_v11, allX_numeric, type='prob')[,1])
 #allX$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, allX, type='prob')[,1])
 #allX$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, allX, type='prob')[,1])
 
@@ -166,7 +177,7 @@ set.seed(89345)
 #nZV <- nearZeroVar(model_data$ML_set__general_TT$train_set %>% dplyr::select(one_of(numeric_predictors)))
 #numeric_predictors <- numeric_predictors[-nZV]
 
-train_sub <- model_data$ML_set__general_TT$train_set %>% dplyr::select(one_of(nn_predictors),'Status') %>% 
+train_sub <- model_data$ML_set__general_TT$train_set %>% dplyr::select(all_of(nn_predictors),'Status') %>% 
   mutate_at(vars(one_of(nn_predictors)), funs(as.numeric(.)))
 train_sub[is.na(train_sub)] <- -1
 test_sub <- model_data$ML_set__general_TT$test_set %>% dplyr::select(one_of(nn_predictors),'Status') %>% 
@@ -184,8 +195,8 @@ status_test01 <- case_when(status_test == 'Pathogenic' ~ 1,
                            TRUE ~ 0)
 train_sub <- train_sub %>% dplyr::select(-Status)
 test_sub <- test_sub %>% dplyr::select(-Status)
-mean <- apply(train_sub %>% dplyr::select_(.dots = nn_predictors), 2, mean)
-std <- apply(train_sub %>% dplyr::select_(.dots = nn_predictors), 2, sd)
+mean <- apply(train_sub %>% dplyr::select(all_of(nn_predictors)), 2, mean)
+std <- apply(train_sub %>% dplyr::select(all_of(nn_predictors)), 2, sd)
 train_data <- scale(train_sub, center=mean, scale=std)
 test_data <- scale(test_sub, center=mean,scale=std)
 
@@ -267,6 +278,7 @@ scale_predict <- function(df, model, predictors, mean, std){
 ######################################
 # xgboost
 ######################################
+
 train_data <- model_data$ML_set__general_TT$train_set %>% 
   dplyr::select(one_of(numeric_predictors),'Status') %>% 
   mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.)))
@@ -293,16 +305,17 @@ print('xgboost trained')
 ########
 test_set <- model_data$ML_set__general_TT$test_set %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-test_set[is.na(test_set)] <- -1
+test_set_predictors <-test_set %>%select(all_of(c(nn_predictors,numeric_predictors))) 
+test_set_predictors[is.na(test_set_predictors)] <- -1
 
-test_set$DeepRNN <- scale_predict(test_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+test_set$DeepRNN <- scale_predict(test_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
-test_set$fitcons_float <- test_set$fitcons
-#test_set$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, test_set, type='prob')[,1])
-test_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, test_set, type='prob')[,1])
-#test_set$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, test_set, type='prob')[,1])
-#test_set$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, test_set, type='prob')[,1])
-test_set$xgbTree <- sqrt(predict(xgbTree, test_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+test_set$fitcons_float <- test_set_predictors$fitcons
+#test_set_predictors$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, test_set_predictors, type='prob')[,1])
+test_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, test_set_predictors, type='prob')[,1])
+#test_set_predictors$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, test_set_predictors, type='prob')[,1])
+#test_set_predictors$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, test_set_predictors, type='prob')[,1])
+test_set$xgbTree <- sqrt(predict(xgbTree, test_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 
 #########
@@ -310,16 +323,17 @@ test_set$xgbTree <- sqrt(predict(xgbTree, test_set %>% dplyr::select(one_of(nume
 #########
 train_set <- model_data$ML_set__general_TT$train_set %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-train_set[is.na(train_set)] <- -1
+train_set_predictors <- train_set %>% select(all_of(c(nn_predictors,numeric_predictors)))
+train_set_predictors[is.na(train_set_predictors)] <- -1
 
-train_set$DeepRNN <- scale_predict(train_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+train_set$DeepRNN <- scale_predict(train_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
-train_set$fitcons_float <- train_set$fitcons
-#train_set$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, train_set, type='prob')[,1])
-train_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, train_set, type='prob')[,1])
-#train_set$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, train_set, type='prob')[,1])
-#train_set$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, train_set, type='prob')[,1])
-train_set$xgbTree <- sqrt(predict(xgbTree, train_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+train_set$fitcons_float <- train_set_predictors$fitcons
+#train_set_predictors$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, train_set_predictors, type='prob')[,1])
+train_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, train_set_predictors, type='prob')[,1])
+#train_set_predictors$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, train_set_predictors, type='prob')[,1])
+#train_set_predictors$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, train_set_predictors, type='prob')[,1])
+train_set$xgbTree <- sqrt(predict(xgbTree, train_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 
 #########
@@ -329,17 +343,17 @@ other_set <- bind_rows(model_data$ML_set__other_TT$train_set %>%
                          mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.))),
                        model_data$ML_set__other_TT$test_set %>% 
                          mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.))))
+other_set_predictors <-  other_set %>% select(all_of(c(nn_predictors,numeric_predictors)))
+other_set_predictors[is.na(other_set_predictors)] <- -1
 
-other_set[is.na(other_set)] <- -1
-
-other_set$DeepRNN <- scale_predict(other_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+other_set$DeepRNN <- scale_predict(other_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
 other_set$fitcons_float <- other_set$fitcons
 #other_set$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, other_set, type='prob')[,1])
-other_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, other_set, type='prob')[,1])
+other_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, other_set_predictors, type='prob')[,1])
 #other_set$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, other_set, type='prob')[,1])
 #other_set$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, other_set, type='prob')[,1])
-other_set$xgbTree <- sqrt(predict(xgbTree, other_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+other_set$xgbTree <- sqrt(predict(xgbTree, other_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 other_set$Status <- c(as.character(model_data$ML_set__other_TT$train_set$Status), 
                       as.character(model_data$ML_set__other_TT$test_set$Status))
@@ -351,8 +365,9 @@ other_set$Status <- c(as.character(model_data$ML_set__other_TT$train_set$Status)
 #########
 withheld_set <- model_data$Test_set__UK10K %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-withheld_set[is.na(withheld_set)] <- -1
 
+withheld_set[is.na(withheld_set)] <- -1
+#this didnt fail so I'm not goinf to change it 
 withheld_set$DeepRNN <- scale_predict(withheld_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
 withheld_set$fitcons_float <- withheld_set$fitcons
