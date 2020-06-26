@@ -140,20 +140,18 @@ allX <- raw_data %>%
                             TRUE ~ 'NotPathogenic')) %>%
   mutate(Status = case_when(Status = grepl('Grimm', DataSet) ~ status,
                             TRUE ~ Status)) %>%
-  #mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.))) %>% 
+  mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.))) %>% 
   #select(-status) %>%
   filter(DataSet != 'Other') %>%
   filter(Status != 'Maybe Pathogenic')
-### VS: this fails , but i think its because the whole allX is the wrong input
-###     I add in allX_numeric to address this. this is the way its done in the build_vpac.R script
-#rm(raw_data)
+### VS: this fails  because of new tidyverse type coercion rules, need to add as.data.frame after all tidyverse code 
+rm(raw_data)
 allX$fitcons_float <- allX$fitcons
-#allX[is.na(allX)] <- -1
-allX_numeric <- allX %>% select(all_of(numeric_predictors)) %>% mutate_all(as.numeric)
-allX_numeric[is.na(allX_numeric)] <- 0
+allX <- as.data.frame(allX)
+allX[is.na(allX)] <- -1
 # calculate VPaC scording for allX
 #allX$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, allX, type='prob')[,1])
-allX$VPaC<- sqrt(predict(VPaC_12mtry_v11, allX_numeric, type='prob')[,1])
+allX$VPaC<- sqrt(predict(VPaC_12mtry_v11, allX %>% select(all_of(numeric_predictors)), type='prob')[,1])
 #allX$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, allX, type='prob')[,1])
 #allX$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, allX, type='prob')[,1])
 
@@ -180,7 +178,7 @@ set.seed(89345)
 train_sub <- model_data$ML_set__general_TT$train_set %>% dplyr::select(all_of(nn_predictors),'Status') %>% 
   mutate_at(vars(one_of(nn_predictors)), funs(as.numeric(.)))
 train_sub[is.na(train_sub)] <- -1
-test_sub <- model_data$ML_set__general_TT$test_set %>% dplyr::select(one_of(nn_predictors),'Status') %>% 
+test_sub <- model_data$ML_set__general_TT$test_set %>% dplyr::select(all_of(nn_predictors),'Status') %>% 
   mutate_at(vars(one_of(nn_predictors)), funs(as.numeric(.)))
 test_sub[is.na(test_sub)] <- -1
 
@@ -305,17 +303,17 @@ print('xgboost trained')
 ########
 test_set <- model_data$ML_set__general_TT$test_set %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-test_set_predictors <-test_set %>%select(all_of(c(nn_predictors,numeric_predictors))) 
-test_set_predictors[is.na(test_set_predictors)] <- -1
+test_set <- as.data.frame(test_set)
+test_set[is.na(test_set)] <- -1
 
-test_set$DeepRNN <- scale_predict(test_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+test_set$DeepRNN <- scale_predict(test_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
-test_set$fitcons_float <- test_set_predictors$fitcons
+test_set$fitcons_float <- test_set$fitcons
 #test_set_predictors$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, test_set_predictors, type='prob')[,1])
-test_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, test_set_predictors, type='prob')[,1])
+test_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, test_set, type='prob')[,1])
 #test_set_predictors$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, test_set_predictors, type='prob')[,1])
 #test_set_predictors$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, test_set_predictors, type='prob')[,1])
-test_set$xgbTree <- sqrt(predict(xgbTree, test_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+test_set$xgbTree <- sqrt(predict(xgbTree, test_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 
 #########
@@ -323,17 +321,17 @@ test_set$xgbTree <- sqrt(predict(xgbTree, test_set_predictors %>% dplyr::select(
 #########
 train_set <- model_data$ML_set__general_TT$train_set %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-train_set_predictors <- train_set %>% select(all_of(c(nn_predictors,numeric_predictors)))
-train_set_predictors[is.na(train_set_predictors)] <- -1
+train_set <- as.data.frame(train_set)
+train_set[is.na(train_set)] <- -1
 
-train_set$DeepRNN <- scale_predict(train_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+train_set$DeepRNN <- scale_predict(train_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
-train_set$fitcons_float <- train_set_predictors$fitcons
+train_set$fitcons_float <- train_set$fitcons
 #train_set_predictors$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, train_set_predictors, type='prob')[,1])
-train_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, train_set_predictors, type='prob')[,1])
+train_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, train_set, type='prob')[,1])
 #train_set_predictors$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, train_set_predictors, type='prob')[,1])
 #train_set_predictors$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, train_set_predictors, type='prob')[,1])
-train_set$xgbTree <- sqrt(predict(xgbTree, train_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+train_set$xgbTree <- sqrt(predict(xgbTree, train_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 
 #########
@@ -343,17 +341,17 @@ other_set <- bind_rows(model_data$ML_set__other_TT$train_set %>%
                          mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.))),
                        model_data$ML_set__other_TT$test_set %>% 
                          mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.))))
-other_set_predictors <-  other_set %>% select(all_of(c(nn_predictors,numeric_predictors)))
-other_set_predictors[is.na(other_set_predictors)] <- -1
+other_set <- as.data.frame(other_set)
+other_set[is.na(other_set)] <- -1
 
-other_set$DeepRNN <- scale_predict(other_set_predictors, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
+other_set$DeepRNN <- scale_predict(other_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # RF based prediction
 other_set$fitcons_float <- other_set$fitcons
 #other_set$VPaC_m06_v1 <- sqrt(predict(VPaC_6mtry, other_set, type='prob')[,1])
-other_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, other_set_predictors, type='prob')[,1])
+other_set$VPaC <- sqrt(predict(VPaC_12mtry_v11, other_set, type='prob')[,1])
 #other_set$VPaC_m09_v8 <- sqrt(predict(VPaC_9mtry_v8, other_set, type='prob')[,1])
 #other_set$VPaC_m06_v8 <- sqrt(predict(VPaC_6mtry_v8, other_set, type='prob')[,1])
-other_set$xgbTree <- sqrt(predict(xgbTree, other_set_predictors %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
+other_set$xgbTree <- sqrt(predict(xgbTree, other_set %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
 other_set$Status <- c(as.character(model_data$ML_set__other_TT$train_set$Status), 
                       as.character(model_data$ML_set__other_TT$test_set$Status))
@@ -365,7 +363,7 @@ other_set$Status <- c(as.character(model_data$ML_set__other_TT$train_set$Status)
 #########
 withheld_set <- model_data$Test_set__UK10K %>% 
   mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-
+withheld_set <- as.data.frame(withheld_set)
 withheld_set[is.na(withheld_set)] <- -1
 #this didnt fail so I'm not goinf to change it 
 withheld_set$DeepRNN <- scale_predict(withheld_set, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
@@ -421,6 +419,7 @@ for (i in seq(1:nrow(params))){
 }
 params$aucpr <- aucpr
 print(params %>% arrange(-aucpr) %>% head(20))
+save(params, tune_set,file = 'testing/tune_set.Rdaat')
 #######
 # DeepRNN * (params %>% arrange(-aucpr) %>% head(1))[1] + VPaC * (params %>% arrange(-aucpr) %>% head(1))[2] + xgbTree * (params %>% arrange(-aucpr) %>% head(1))[3]
 #######
@@ -428,7 +427,7 @@ print(params %>% arrange(-aucpr) %>% head(20))
 ###################
 # Calc for Colombia
 ####################
-colombia_out <- colombia_out %>% mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.)))
+colombia_out <- colombia_out %>% mutate_at(vars(one_of(numeric_predictors)), funs(as.numeric(.))) %>% as.data.frame
 colombia_out[is.na(colombia_out)] <- -1
 colombia_out$VPaC<- sqrt(predict(VPaC_12mtry_v11, colombia_out, type='prob')[,1])
 colombia_out$xgbTree <- sqrt(predict(xgbTree, colombia_out %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
@@ -439,16 +438,14 @@ colombia_out$DeepRNN <- scale_predict(colombia_out, model, DeepRNN$predictors, D
 
 
 # but predict xgbTree, then DeepRNN with scale_predict on AllX
-allX <- allX %>% mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
-allX[is.na(allX)] <- -1
+# allX <- allX %>% mutate_at(vars(one_of(c(nn_predictors,numeric_predictors))), funs(as.numeric(.)))
+# allX[is.na(allX)] <- -1
 allX$xgbTree <- sqrt(predict(xgbTree, allX %>% dplyr::select(one_of(numeric_predictors)) %>% as.matrix()))
 
-all_sub <- allX
-all_sub$DeepRNN <- scale_predict(all_sub, model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 
-allX$DeepRNN <- all_sub$DeepRNN
+allX$DeepRNN  <- scale_predict(allX %>% select(all_of(nn_predictors)), model, DeepRNN$predictors, DeepRNN$mean, DeepRNN$std)
 # merge test and train set with allX
-allX2 <- bind_rows(allX %>% mutate_all(as.character), 
+allX <- bind_rows(allX %>% mutate_all(as.character), 
                    withheld_set %>% mutate(DataSet = 'UK10K Withheld') %>% mutate_all(as.character),
                    tune_set %>% mutate(DataSet = 'Tune Set') %>% mutate_all(as.character),
                    test_set %>% mutate(DataSet = 'Test Set') %>% mutate_all(as.character), 
@@ -456,15 +453,17 @@ allX2 <- bind_rows(allX %>% mutate_all(as.character),
                    other_set %>% mutate(DataSet = 'Other Set') %>% mutate_all(as.character),
                    ogvfb_ML_set %>% mutate(DataSet = 'OGVFB Exomes') %>% mutate_all(as.character),
                    colombia_out %>% mutate(DataSet = 'Colombia Exomes') %>% mutate_all(as.character)) %>% 
-  mutate_at(vars(one_of(c(numeric_predictors, nn_predictors))), funs(as.numeric(.)))
-allX2[is.na(allX2)] <- -1
-allX <- allX2
+  mutate_at(vars(one_of(c(numeric_predictors, nn_predictors))), funs(as.numeric(.))) %>% 
+  as.data.frame
+allX[is.na(allX)] <- -1
+allX <-  as.data.frame(allX)
+
 
 allX <- allX %>% 
   mutate_at(vars(contains('VP')), as.numeric) %>% 
   mutate_at(vars(contains('Deep')), as.numeric) %>% 
   mutate_at(vars(contains('xgb')), as.numeric) %>% 
-  mutate(Status=factor(Status, levels=c('Pathogenic','NotPathogenic')))
+  mutate(Status=factor(Status, levels=c('Pathogenic','NotPathogenic'))) %>% as.data.frame
 
 print('allX reformed')
 #############
@@ -514,5 +513,10 @@ assess_set$Distill <- (assess_set$DeepRNN * (params %>% arrange(-aucpr) %>% head
   (assess_set$xgbTree * (params %>% arrange(-aucpr) %>% head(1))[3] %>% as.numeric())
 
 ###
-save(allX, file='/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/allX_2018_08_27.Rdata')
-save(assess_set, file='/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/assess_2018_08_27.Rdata')
+# save(allX, file='/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/allX_2018_08_27.Rdata')
+# save(assess_set, file='/data/mcgaugheyd/projects/nei/mcgaughey/eye_var_Pathogenicity/clean_data/assess_2018_08_27.Rdata')
+
+save(allX, file='clean_data/allX_2020_06_24_VS.Rdata')
+save(assess_set, file='clean_data/assess_2020_06_24_VS.Rdata')
+
+
