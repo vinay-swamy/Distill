@@ -191,32 +191,63 @@ missing_df <- tibble(cols= common_non_numeric_cols,
                      test = count_missing(general_test_data), 
                      allx = count_missing(allX_clean), 
                      colombia = count_missing(colombia_out))
-target_categorical_preds <- missing_df %>% filter(nuniq >1, nuniq <15, 
-                                                  train<=.01, test <=.01, allx <=.01, colombia <=.01) %>% 
+target_categorical_preds <- missing_df %>% 
+  filter(nuniq >1, nuniq <15,  train<=.01, test <=.01, allx <=.01, colombia <=.01,
+         !cols%in%c("filter", "exome_chip", "gno_filter","gwas_pubmed_trait"   )) %>% 
   pull(cols)
+
+all_numpreds <- c(numeric_predictors, eyeIntegration)
 
 general_train_data_all <-  model_data$ML_set__general_TT$train_set %>% as.data.frame %>% 
   select(all_of(id_cols), all_of(numeric_predictors), all_of(eyeIntegration), all_of(target_categorical_preds)) %>% 
-  mutate_at(vars(all_of(numeric_predictors)), funs(as.numeric(.))) %>% as.data.frame
+  mutate_at(vars(all_of(all_numpreds)), funs(as.numeric(.))) %>% 
+  mutate(variant_id = as.numeric(variant_id), 
+         start = as.numeric(start), 
+         end = as.numeric(end)) %>% 
+  as.data.frame
 general_train_data_all[is.na(general_train_data_all)] <- -1
 
 general_test_data_all  <-  model_data$ML_set__general_TT$test_set %>% as.data.frame %>% 
   select(all_of(id_cols), all_of(numeric_predictors), all_of(eyeIntegration), all_of(target_categorical_preds)) %>% 
-  mutate_at(vars(all_of(numeric_predictors)), funs(as.numeric(.)))
+  mutate_at(vars(all_of(all_numpreds)), funs(as.numeric(.))) %>% 
+  mutate(variant_id = as.numeric(variant_id), 
+         start = as.numeric(start), 
+         end = as.numeric(end)) %>% 
+  as.data.frame
 general_test_data_all[is.na(general_test_data_all)] <- -1
 
 allX_all <- allX_clean %>% 
   select(all_of(id_cols), all_of(numeric_predictors), all_datasets, all_status,  all_of(eyeIntegration), all_of(target_categorical_preds))%>% 
-  mutate_at(vars(all_of(numeric_predictors)), funs(as.numeric(.)))
+  mutate_at(vars(all_of(all_numpreds)), funs(as.numeric(.))) %>% 
+  mutate(variant_id = as.numeric(variant_id), 
+         start = as.numeric(start), 
+         end = as.numeric(end)) %>% 
+  as.data.frame()
 allX_all[is.na(allX_all)] <- -1
 
 colombia_all <- colombia_out %>% 
   select(all_of(id_cols), all_of(numeric_predictors), all_of(eyeIntegration), all_of(target_categorical_preds))%>% 
-  mutate_at(vars(all_of(numeric_predictors)), funs(as.numeric(.)))
+  mutate_at(vars(all_of(all_numpreds)), funs(as.numeric(.))) %>% 
+  mutate(variant_id = as.numeric(variant_id), 
+         start = as.numeric(start), 
+         end = as.numeric(end)) %>% 
+  as.data.frame
 colombia_all[is.na(colombia_all)] <- -1
 
+all_variants_clean <- bind_rows(
+  general_train_data_all %>% mutate(origin = 'train') ,
+  general_test_data_all %>% mutate(origin = 'test'),
+  allX_all %>% mutate(origin = 'allX'),
+  colombia_all %>% mutate(origin = 'colombia')
+)
 write_feather(general_train_data_all, 'feather_data/clean/ml_set_general_train.ftr')
 write_feather(general_test_data_all, 'feather_data/clean/ml_set_general_test.ftr')
 write_feather(allX_all, 'feather_data/clean/allX.ftr')
 write_feather(colombia_all, 'feather_data/clean/colombia.ftr')
+write_feather(all_variants_clean, 'feather_data/clean/all_variants.ftr')
+
+write(numeric_predictors, 'ref/numeric_predictors.txt', sep = '\n')
+write(nn_predictors, 'ref/nn_predictors.txt', sep = '\n')
+write(eyeIntegration, 'ref/eyeintegration_predictors.txt', sep = '\n')
+
 
