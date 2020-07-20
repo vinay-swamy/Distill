@@ -21,6 +21,9 @@ predictSNP	“Benchmark dataset used for the evaluation of…prediction tools an
 
 
 SwissVar	“Comprehensive collection of single amino acid polymorphisms (SAPs) and diseases in the UniProtKB/Swiss‐Prot knowledgebase”	“A variant is classified as disease when it is found in patients and disease association is reported in literature. However, this classification is not a definitive assessment of pathogenicity”f	“A variant is classified as polymorphism if no disease association has been reported”
+```{r setup}
+knitr::opts_knit$set(root.dir = '/data/swamyvs/Distill/')
+```
 
 
 # On local computer
@@ -44,7 +47,7 @@ Load csvs
 library(tidyverse)
 library(stringr)
 library(data.table)
-grimm_csvs <- list.files('/Volumes/data/projects/nei/mcgaughey/eye_var_Pathogenicity/data/grimm/', pattern = '*csv', full.names = T)
+grimm_csvs <- list.files('data/raw_prep/', pattern = 'tool_scores.csv', full.names = T, recursive = T)
 
 grimm_data <- data.frame()
 for (i in grimm_csvs){
@@ -56,10 +59,10 @@ grimm_data <- grimm_data %>% mutate(Status = case_when(`True Label` > 0 ~ 'Patho
                                          TRUE ~ 'NotPathogenic')) %>% 
   mutate(CHR=gsub('chr','',CHR)) %>% 
   filter(!grepl('PATCH|MHC|LRC|GL',CHR))
-
+sum(is.na(grimm_data$CHR))
 grimm_data_collapse <- grimm_data %>% 
   group_by(CHR, `Nuc-Pos`, `REF-Nuc`, `ALT-Nuc`) %>% 
-  summarise(Status = paste(paste0('Status=',paste(unique(Status), collapse='__'))),
+  summarise(Status = paste0('Status=',paste(unique(Status), collapse='__')),
             Source = paste(paste0('Source=',paste(unique(Source), collapse='__')))) %>% 
   mutate(INFO = paste(Status, Source, sep=';')) %>% 
   filter(!grepl('__', Status)) %>%   # remove conflicting

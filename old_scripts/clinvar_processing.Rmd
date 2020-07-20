@@ -4,13 +4,18 @@ output: html_notebook
 ---
 
 # Read in MacArthur group processed clinvar data
+
+```{r setup}
+knitr::opts_knit$set(root.dir = '/data/swamyvs/Distill/')
+```
+
 ```{r}
 library(data.table)
 library(tidyverse)
 library(here)
-data_path <- '/Volumes/data/projects/nei/mcgaughey/eye_var_Pathogenicity/'
+#data_path <- '/Volumes/data/projects/nei/mcgaughey/eye_var_Pathogenicity/'
 
-clinvar_single <- fread('gzcat ~/git/clinvar/output/b37/single/clinvar_alleles.single.b37.tsv.gz')
+clinvar_single <- fread('data/raw_prep/clinvar_alleles.single.b37.tsv.gz', sep = '\t')
 #clinvar_single <- fread(paste0('gzcat ', data_path, '/data/clinvar/clinvar_alleles.single.b37.tsv.gz'))
 ```
 
@@ -20,10 +25,11 @@ path_eye <- clinvar_single %>%
   filter(pathogenic > 0 | likely_pathogenic > 0) %>% 
   filter(conflicted=='0', gold_stars > 0) %>% 
   filter(grepl('stargardt|retina|leber|usher|cone-rod|rod-cone|macula|retinitis|eye|cornea', all_traits, ignore.case=T) | 
-           grepl('stargardt|retina|leber|usher|cone-rod|rod-cone|macula|retinitis|eye|cornea', xrefs, ignore.case=T)) %>% 
+           grepl('stargardt|retina|leber|usher|cone-rod|rod-cone|macula|retinitis|eye|cornea', xrefs, ignore.case=T)) #%>% 
   filter(!grepl('cardio|cancer|carci|lynch', ignore.case = T, all_traits)) %>% 
   mutate(ID='.', QUAL='.', FILTER='.', INFO='STATUS=PATHOGENIC_EYE', FORMAT='GT', FAUX='0/1')
-dim(path_eye)
+
+write_tsv(path_eye, 'testing/r-path-eye.tsv')
 ```
 # All pathogenic, marking ones with over 1 stars as high quality
 ```{r}
@@ -53,6 +59,7 @@ benign_eye <-  clinvar_single %>%
   mutate(ID='.', QUAL='.', FILTER='.', INFO='STATUS=BENIGN_EYE', FORMAT='GT', FAUX='0/1')
 
 dim(benign_eye)
+
 ```
 
 
